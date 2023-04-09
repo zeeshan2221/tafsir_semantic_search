@@ -3,26 +3,20 @@ import streamlit as st
 import cohere
 import pinecone
 import openai
-
 st.subheader("This is an app to answer questions from the Quran (with references)")
 
 #  storing api keys both cohere and pinecone
-pinecone_api_key = st.secrets[pinecone_API_key]
-cohere_api_key = st.secrets[cohere_API_key]
+pinecone_api_key = 'cf643833-3fee-4700-9ac7-f0f90635a544'
+cohere_api_key = 'z1DuayqafzKLEH4pOVHAPoDqKW5Gahqsut7mu00s'
 
 # initializing cohere and pinecone
 co = cohere.Client(cohere_api_key)
-
 index_name = 'tafsir'
 pinecone.init(pinecone_api_key, environment='us-west1-gcp')
-
-
 # connect to index
 index = pinecone.Index(index_name)
-
 # defining the limit of the context
 limit = 1600
-
 def retrieve(query):
     xq = co.embed(
         texts=[query],
@@ -34,7 +28,6 @@ def retrieve(query):
     contexts = [
         x['metadata']['text'] for x in xc['matches']
     ]
-
     # build our prompt with the retrieved contexts included
     prompt_start = (
         "Answer the Query based on the contexts, if it's not in the contexts say 'I don't know the answer'. \n\n"+
@@ -59,50 +52,15 @@ def retrieve(query):
                 prompt_end
             )
     return prompt
-
 # st.markdown("### if nothing is written in text box the above mentioned text is by default recommended to you")
     
-
 # st.spinner("Searching for the answer")
 # query_with_contexts = retrieve(query)
 # query_with_contexts 
 
 
-
 # get API key from top-right dropdown on OpenAI website
-openai.api_key = st.secrets[openai_API_key]
+openai.api_key = "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"
 
 
 def complete(prompt):
-    # query text-davinci-003
-    res = openai.Completion.create(
-        engine='text-davinci-003',
-        prompt=prompt,
-        temperature=0,
-        max_tokens=1000,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None
-    )
-    return res['choices'][0]['text'].strip()
-
-# complete(query_with_contexts)
-# st.text(results)
-
-# st.markdown(results)
-
-results = ''
-
-with st.form("my_form"):
-    query = st.text_area(":green[Enter Your :question: Question] :point_left:", 
-                help= "Ask question on any topic in the Holy Quran",
-                height=100,
-                placeholder="Ask question on any topic in the Holy Quran")
-
-    submitted = st.form_submit_button("Submit")
-    if submitted:
-        query_with_contexts = retrieve(query)
-        results = complete(query_with_contexts)
-
-st.write(results)
